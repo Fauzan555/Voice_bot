@@ -1,12 +1,19 @@
-# Save this as app.py
+# app.py
 import streamlit as st
-from streamlit_chat import message
 import pyttsx3
 
 st.set_page_config(page_title="Voice Chatbot Demo", page_icon="🤖")
 
 st.title("Voice Chatbot Demo")
-st.write("Click the button and speak your question. The bot will respond in text and voice.")
+st.write("Ask any of the sample questions below:")
+
+st.markdown("""
+- What should we know about your life story in a few sentences?  
+- What’s your #1 superpower?  
+- What are the top 3 areas you’d like to grow in?  
+- What misconception do your coworkers have about you?  
+- How do you push your boundaries and limits?  
+""")
 
 # Initialize pyttsx3 text-to-speech engine
 engine = pyttsx3.init()
@@ -24,10 +31,10 @@ predefined_answers = {
 if 'history' not in st.session_state:
     st.session_state.history = []
 
-# Text input for simulation (since browser voice input is tricky in Streamlit)
-user_input = st.text_input("Type or paste your question here:")
+# User input
+user_input = st.text_input("Type your question here:")
 
-if st.button("Send"):
+if st.button("Ask"):
     text = user_input.lower()
     reply = "Sorry, I didn't understand. Please ask one of the sample questions."
     
@@ -42,14 +49,18 @@ if st.button("Send"):
     elif "boundaries" in text:
         reply = predefined_answers["boundaries"]
     
-    # Add messages to chat history
+    # Save to history
     st.session_state.history.append({"user": user_input, "bot": reply})
     
-    # Speak the reply
-    engine.say(reply)
-    engine.runAndWait()
+    # Speak the reply (server side – won’t play in Streamlit Cloud, but works locally)
+    try:
+        engine.say(reply)
+        engine.runAndWait()
+    except:
+        st.info("Speech synthesis not supported in Streamlit Cloud.")
 
-# Display chat history
+# Show chat history
 for chat in st.session_state.history:
-    message(chat["user"], is_user=True)
-    message(chat["bot"])
+    st.markdown(f"**You:** {chat['user']}")
+    st.markdown(f"**Bot:** {chat['bot']}")
+    st.markdown("---")
