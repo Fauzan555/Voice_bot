@@ -1,6 +1,5 @@
-# app.py
 import streamlit as st
-import pyttsx3
+import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Voice Chatbot Demo", page_icon="🤖")
 
@@ -15,9 +14,6 @@ st.markdown("""
 - How do you push your boundaries and limits?  
 """)
 
-# Initialize pyttsx3 text-to-speech engine
-engine = pyttsx3.init()
-
 # Predefined answers
 predefined_answers = {
     "life story": "I’m an AI model designed to assist and provide information. I learn continuously and love helping people solve problems in creative ways.",
@@ -27,11 +23,9 @@ predefined_answers = {
     "boundaries": "I experiment with new types of questions and domains to improve my accuracy and usefulness continuously."
 }
 
-# Chat history
 if 'history' not in st.session_state:
     st.session_state.history = []
 
-# User input
 user_input = st.text_input("Type your question here:")
 
 if st.button("Ask"):
@@ -48,19 +42,22 @@ if st.button("Ask"):
         reply = predefined_answers["misconceptions"]
     elif "boundaries" in text:
         reply = predefined_answers["boundaries"]
-    
-    # Save to history
+
     st.session_state.history.append({"user": user_input, "bot": reply})
-    
-    # Speak the reply (server side – won’t play in Streamlit Cloud, but works locally)
-    try:
-        engine.say(reply)
-        engine.runAndWait()
-    except:
-        st.info("Speech synthesis not supported in Streamlit Cloud.")
 
 # Show chat history
 for chat in st.session_state.history:
     st.markdown(f"**You:** {chat['user']}")
     st.markdown(f"**Bot:** {chat['bot']}")
+
+    # 🔊 Use browser speech synthesis for bot reply
+    components.html(
+        f"""
+        <script>
+        var msg = new SpeechSynthesisUtterance("{chat['bot']}");
+        window.speechSynthesis.speak(msg);
+        </script>
+        """,
+        height=0,
+    )
     st.markdown("---")
